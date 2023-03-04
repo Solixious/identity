@@ -1,6 +1,5 @@
 package org.pratyush.identity.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.dozer.Mapper;
 import org.pratyush.identity.model.dto.User;
@@ -14,8 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -40,12 +37,12 @@ public class UserService {
                 .map(this::buildResponse);
     }
 
-    public Mono<AuthResponse> getToken(AuthRequest request) {
+    public Mono<AuthResponse> login(AuthRequest request) {
         return Mono.just(request)
                 .map(AuthRequest::getEmail)
                 .flatMap(repository::findByEmail)
                 .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
-                .map(user -> new AuthResponse(jwtUtil.generateToken(user)))
+                .map(user -> new AuthResponse(jwtUtil.generateToken(user), "Not Implemented"))
                 .switchIfEmpty(Mono.empty());
     }
 
