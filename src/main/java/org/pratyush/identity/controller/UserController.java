@@ -32,7 +32,14 @@ public class UserController {
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()));
     }
 
-    @GetMapping("/")
+    @PostMapping("/token/generate")
+    public Mono<ResponseEntity<AuthResponse>> tokenGenerate(@RequestBody Mono<AuthRequest> request) {
+        return request.flatMap(userService::tokenGenerate)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()));
+    }
+
+    @GetMapping
     public Mono<ResponseEntity<UserDetailResponse>> getUserDetail() {
         return userService.getUserDetail()
                 .map(ResponseEntity::ok)

@@ -11,7 +11,8 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/health")
 public class HealthController {
-    
+
+    @GetMapping
     public Mono<ResponseEntity<HealthResponse>> health() {
         return Mono.just(new HealthResponse(true)).map(ResponseEntity::ok);
     }

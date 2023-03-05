@@ -51,6 +51,14 @@ public class UserService {
                 .switchIfEmpty(Mono.empty());
     }
 
+    public Mono<AuthResponse> tokenGenerate(AuthRequest request) {
+        return Mono.just(request)
+                .map(AuthRequest::getRefreshToken)
+                .flatMap(userRepository::findByRefreshToken)
+                .map(user -> new AuthResponse(jwtUtil.generateToken(user), null))
+                .switchIfEmpty(Mono.empty());
+    }
+
     public Mono<UserDetailResponse> getUserDetail() {
         return Mono.just(SecurityContextHolder.getContext().getAuthentication().getName())
                 .map(userRepository::findByEmail)
