@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
-                .pathMatchers("/identity/login", "/identity/register").permitAll()
+                .pathMatchers("/user/login", "/user/register").permitAll()
                 .anyExchange().authenticated()
                 .and()
                 .build();

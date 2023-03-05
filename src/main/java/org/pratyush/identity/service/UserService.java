@@ -8,6 +8,7 @@ import org.pratyush.identity.model.request.UserRegistrationRequest;
 import org.pratyush.identity.model.response.AuthResponse;
 import org.pratyush.identity.model.response.UserDetailResponse;
 import org.pratyush.identity.model.response.UserRegistrationResponse;
+import org.pratyush.identity.repository.RefreshTokenRepository;
 import org.pratyush.identity.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,13 +19,15 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final Mapper mapper;
 
-    public UserService(UserRepository repository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, Mapper mapper) {
-        this.repository = repository;
+    public UserService(UserRepository userRepository, RefreshTokenRepository refreshTokenRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, Mapper mapper) {
+        this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.mapper = mapper;
@@ -33,22 +36,24 @@ public class UserService {
     public Mono<UserRegistrationResponse> register(UserRegistrationRequest request) {
         return Mono.just(request)
                 .doOnNext(this::updateEncodedPassword)
-                .flatMap(repository::register)
+                .flatMap(userRepository::register)
                 .map(this::buildResponse);
     }
 
     public Mono<AuthResponse> login(AuthRequest request) {
         return Mono.just(request)
                 .map(AuthRequest::getEmail)
-                .flatMap(repository::findByEmail)
+                .flatMap(userRepository::findByEmail)
                 .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
-                .map(user -> new AuthResponse(jwtUtil.generateToken(user), "Not Implemented"))
+                .flatMap(user ->
+                        Mono.zip(Mono.just(jwtUtil.generateToken(user)), refreshTokenRepository.createRefreshToken(user))
+                                .map(tuple -> new AuthResponse(tuple.getT1(), tuple.getT2())))
                 .switchIfEmpty(Mono.empty());
     }
 
     public Mono<UserDetailResponse> getUserDetail() {
         return Mono.just(SecurityContextHolder.getContext().getAuthentication().getName())
-                .map(repository::findByEmail)
+                .map(userRepository::findByEmail)
                 .flatMap(this::toUserDetailResponse);
     }
 
