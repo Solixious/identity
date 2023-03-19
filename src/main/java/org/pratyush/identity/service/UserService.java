@@ -3,8 +3,10 @@ package org.pratyush.identity.service;
 import lombok.extern.slf4j.Slf4j;
 import org.dozer.Mapper;
 import org.pratyush.identity.model.dto.User;
+import org.pratyush.identity.model.request.AuthRefreshRequest;
 import org.pratyush.identity.model.request.AuthRequest;
 import org.pratyush.identity.model.request.UserRegistrationRequest;
+import org.pratyush.identity.model.response.AuthRefreshResponse;
 import org.pratyush.identity.model.response.AuthResponse;
 import org.pratyush.identity.model.response.UserDetailResponse;
 import org.pratyush.identity.model.response.UserRegistrationResponse;
@@ -51,11 +53,11 @@ public class UserService {
                 .switchIfEmpty(Mono.empty());
     }
 
-    public Mono<AuthResponse> tokenGenerate(AuthRequest request) {
+    public Mono<AuthRefreshResponse> refreshToken(AuthRefreshRequest request) {
         return Mono.just(request)
-                .map(AuthRequest::getRefreshToken)
+                .map(AuthRefreshRequest::getRefreshToken)
                 .flatMap(userRepository::findByRefreshToken)
-                .map(user -> new AuthResponse(jwtUtil.generateToken(user), null))
+                .map(user -> new AuthRefreshResponse(jwtUtil.generateToken(user)))
                 .switchIfEmpty(Mono.empty());
     }
 

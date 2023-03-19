@@ -1,7 +1,9 @@
 package org.pratyush.identity.controller;
 
+import org.pratyush.identity.model.request.AuthRefreshRequest;
 import org.pratyush.identity.model.request.AuthRequest;
 import org.pratyush.identity.model.request.UserRegistrationRequest;
+import org.pratyush.identity.model.response.AuthRefreshResponse;
 import org.pratyush.identity.model.response.AuthResponse;
 import org.pratyush.identity.model.response.UserDetailResponse;
 import org.pratyush.identity.model.response.UserRegistrationResponse;
@@ -33,8 +35,8 @@ public class UserController {
     }
 
     @PostMapping("/token/generate")
-    public Mono<ResponseEntity<AuthResponse>> tokenGenerate(@RequestBody Mono<AuthRequest> request) {
-        return request.flatMap(userService::tokenGenerate)
+    public Mono<ResponseEntity<AuthRefreshResponse>> tokenGenerate(@RequestBody Mono<AuthRefreshRequest> request) {
+        return request.flatMap(userService::refreshToken)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()));
     }
